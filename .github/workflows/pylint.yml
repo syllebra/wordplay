@@ -20,4 +20,4 @@ jobs:
         pip install pylint
     - name: Analysing the code with pylint
       run: |
-        pylint --disable=R,C,W $(git ls-files '*.py') 
+        pip install -r backend/requirements.txt; pylint --disable=R,C,W $(git ls-files '*.py') 

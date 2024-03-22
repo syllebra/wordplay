@@ -1,8 +1,9 @@
 import csv
-from tqdm import tqdm
 import random
-from unidecode import unidecode
 import pickle
+
+from tqdm import tqdm
+from unidecode import unidecode
 
 # #from https://cs.stackexchange.com/questions/143527/counting-number-of-swaps-to-make-two-strings-equal-in-linear-time
 # def count_intersections(s1, s2):
@@ -20,7 +21,7 @@ import pickle
 
 def load_scrabble_official(file = "French ODS dictionary.txt"):
     officiel_scrabble = {}
-    with open(file, 'r') as file:
+    with open(file, 'r', encoding='utf-8') as file:
         # Iterate over the lines of the file
         for line in tqdm(file):
             # Remove the newline character at the end of the line
@@ -167,7 +168,7 @@ def init():
 
 #print(random.choice(list(games.values())))
 if __name__ == "__main__":
-    import json
+    #import json
     games = init()
 
     with open('full.games','wb') as f:

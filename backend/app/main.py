@@ -1,11 +1,12 @@
-from typing import Union
-
-from fastapi import FastAPI
-from pydantic import BaseModel
 import random
 import pickle
-from unidecode import unidecode
 import os
+
+
+from typing import Union
+from fastapi import FastAPI
+from pydantic import BaseModel
+from unidecode import unidecode
 
 app = FastAPI()
 with open(os.path.join(os.path.dirname(__file__),"full.games"), "rb") as file:
@@ -83,22 +84,22 @@ def random_games(length: int, num: Union[str, None] = None):
         return {"ERROR":f"{length} long words not available."}
 
     number = 1
-    all = False
+    export_all_games = False
     try:
         number = int(num)
-    except:
+    except Exception:
         if(num == "all"):
-            all = True
+            export_all_games = True
 
     ret = []
-    if(all):
-        for k,v in games[length].items():
+    if(export_all_games):
+        for _,v in games[length].items():
             wc = random.choice(v).copy()
             if("R" in wc):
                 del(wc["R"])
             ret.append(wc)
     else:
-        for i in range(number):
+        for _ in range(number):
             wc = random_wordcomp(length)
             if("R" in wc):
                 del(wc["R"])
@@ -121,6 +122,5 @@ def check(w1: str, w2: str, proposition: str):
 #     return {"item_name": item.name, "item_id": item_id}
 
 if __name__ == "__main__":
-    import pickle
     with open("full.games", "rb") as file:
         games = pickle.load(file)

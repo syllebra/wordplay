@@ -15,11 +15,11 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build the Docker image
-      run: cd backend; docker build . --file Dockerfile --tag wordplay:$(date +%s)
+      run: cd backend; docker build . --file Dockerfile --tag wordplay:${{ github.sha }}
     - name: Run Trivy vulnerability scanner
       uses: aquasecurity/trivy-action@master
       with:
-          image-ref: 'wordplay:$(date +%s)'
+          image-ref: 'wordplay:${{ github.sha }}'
           format: 'table'
           exit-code: '1'
           ignore-unfixed: true

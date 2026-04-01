@@ -8,6 +8,7 @@ const word1Container = document.getElementById('word1');
 const word2Container = document.getElementById('word2');
 const solutionContainer = document.getElementById('solution');
 const difficultySelect = document.getElementById('difficulty');
+const vocabularySelect = document.getElementById('vocabulary');
 const newGameBtn = document.getElementById('new-game');
 const checkBtn = document.getElementById('check-btn');
 const hintBtn = document.getElementById('hint-btn');
@@ -33,6 +34,7 @@ async function init() {
 
 function startNewGame() {
     const length = parseInt(difficultySelect.value);
+    const vocabType = vocabularySelect.value;
     const lengthGames = games[length];
 
     if (!lengthGames) {
@@ -40,10 +42,26 @@ function startNewGame() {
         return;
     }
 
-    const gameKeys = Object.keys(lengthGames);
-    const randomKey = gameKeys[Math.floor(Math.random() * gameKeys.length)];
-    const variations = lengthGames[randomKey];
-    currentGame = variations[Math.floor(Math.random() * variations.length)];
+    let possibleGames = [];
+    Object.values(lengthGames).forEach(variations => {
+        variations.forEach(g => {
+            if (vocabType === 'all' || g.is_common) {
+                possibleGames.push(g);
+            }
+        });
+    });
+
+    if (possibleGames.length === 0) {
+        showMessage('Aucun mot trouvé pour ce niveau de vocabulaire.', 'error');
+        return;
+    }
+
+    currentGame = possibleGames[Math.floor(Math.random() * possibleGames.length)];
+
+    // Store original forms but we will use normalized letters for play
+    currentGame.normW1 = normalize(currentGame.w1);
+    currentGame.normW2 = normalize(currentGame.w2);
+    currentGame.normR = normalize(currentGame.R);
 
     userSolution = new Array(length).fill('');
     focusedSlotIndex = 0;
@@ -52,12 +70,53 @@ function startNewGame() {
     showMessage('', '');
 }
 
-function renderGame() {
-    // Render source words
-    renderWord(word1Container, currentGame.w1);
-    renderWord(word2Container, currentGame.w2);
+function getAvailableLetters() {
+    const combined = (currentGame.normW1 + currentGame.normW2).split('');
+    const used = userSolution.map(c => normalize(c)).filter(c => c !== '');
 
-    // Render solution slots
+    // Calculate counts of each letter
+    const counts = {};
+    combined.forEach(c => counts[c] = (counts[c] || 0) + 1);
+    used.forEach(c => {
+        if (counts[c]) counts[c]--;
+    });
+
+    return counts;
+}
+
+function renderGame() {
+    const available = getAvailableLetters();
+    const combinedList1 = currentGame.normW1.split('');
+    const combinedList2 = currentGame.normW2.split('');
+
+    // We need to track which specific letter instances are "used"
+    // To be stable, we'll mark them from left to right
+    const usedStatus1 = new Array(combinedList1.length).fill(false);
+    const usedStatus2 = new Array(combinedList2.length).fill(false);
+
+    const usedLetters = userSolution.map(c => normalize(c)).filter(c => c !== '');
+    usedLetters.forEach(char => {
+        let found = false;
+        for (let i = 0; i < combinedList1.length; i++) {
+            if (combinedList1[i] === char && !usedStatus1[i]) {
+                usedStatus1[i] = true;
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            for (let i = 0; i < combinedList2.length; i++) {
+                if (combinedList2[i] === char && !usedStatus2[i]) {
+                    usedStatus2[i] = true;
+                    break;
+                }
+            }
+        }
+    });
+
+    renderWord(word1Container, combinedList1, usedStatus1);
+    renderWord(word2Container, combinedList2, usedStatus2);
+
     solutionContainer.innerHTML = '';
     userSolution.forEach((char, index) => {
         const slot = document.createElement('div');
@@ -68,7 +127,6 @@ function renderGame() {
             renderGame();
         });
 
-        // Drag and Drop: Drop target
         slot.addEventListener('dragover', (e) => {
             e.preventDefault();
             slot.style.borderColor = '#2ecc71';
@@ -81,39 +139,41 @@ function renderGame() {
         slot.ondrop = (e) => {
             e.preventDefault();
             const char = e.dataTransfer.getData('text/plain');
-            userSolution[index] = char;
-            focusedSlotIndex = (index + 1) % userSolution.length;
-            renderGame();
+            const available = getAvailableLetters();
+            if (available[normalize(char)] > 0) {
+                userSolution[index] = char;
+                focusedSlotIndex = (index + 1) % userSolution.length;
+                renderGame();
+            }
         };
 
         solutionContainer.appendChild(slot);
     });
 }
 
-function renderWord(container, word) {
+function renderWord(container, letters, usedStatus) {
     container.innerHTML = '';
-    word.split('').forEach(char => {
+    letters.forEach((char, index) => {
         const letter = document.createElement('div');
-        letter.className = 'letter';
-        letter.textContent = char.toUpperCase();
-        letter.draggable = true;
+        const isUsed = usedStatus[index];
+        letter.className = 'letter' + (isUsed ? ' used' : '');
+        letter.textContent = char.toUpperCase(); // No accents displayed
 
-        // Drag and Drop: Drag source
-        letter.ondragstart = (e) => {
-            e.dataTransfer.setData('text/plain', char);
-            letter.classList.add('dragging');
-        };
-
-        letter.ondragend = () => {
-            letter.classList.remove('dragging');
-        };
-
-        // Click to add to current focused slot
-        letter.onclick = () => {
-            userSolution[focusedSlotIndex] = char;
-            focusedSlotIndex = (focusedSlotIndex + 1) % userSolution.length;
-            renderGame();
-        };
+        if (!isUsed) {
+            letter.draggable = true;
+            letter.ondragstart = (e) => {
+                e.dataTransfer.setData('text/plain', char);
+                letter.classList.add('dragging');
+            };
+            letter.ondragend = () => {
+                letter.classList.remove('dragging');
+            };
+            letter.onclick = () => {
+                userSolution[focusedSlotIndex] = char;
+                focusedSlotIndex = (focusedSlotIndex + 1) % userSolution.length;
+                renderGame();
+            };
+        }
 
         container.appendChild(letter);
     });
@@ -126,28 +186,16 @@ function showMessage(text, type) {
 
 function checkSolution() {
     const proposition = userSolution.join('').toLowerCase();
-    if (proposition.length < currentGame.R.length || userSolution.includes('')) {
+    if (proposition.length < currentGame.normR.length || userSolution.includes('')) {
         showMessage('Le mot n\'est pas complet.', 'error');
         return;
     }
 
     const normProp = normalize(proposition);
-    const normW1 = normalize(currentGame.w1);
-    const normW2 = normalize(currentGame.w2);
-
-    const combined = (normW1 + normW2).split('').sort().join('');
-    const sortedProp = normProp.split('').sort().join('');
-
-    if (combined !== sortedProp) {
-        showMessage('Les lettres ne correspondent pas.', 'error');
-        return;
-    }
-
-    const length = currentGame.R.length;
-    const sortedKey = sortedProp;
+    const length = currentGame.normR.length;
+    const sortedKey = normProp.split('').sort().join('');
 
     if (games[length][sortedKey]) {
-        // Any word that exists in the game data for this key is a valid solution
         const found = games[length][sortedKey].find(g => normalize(g.R) === normProp);
         if (found) {
             showMessage(`Bravo ! "${proposition.toUpperCase()}" est correct.`, 'success');
@@ -161,8 +209,8 @@ function checkSolution() {
 
 function giveHint() {
     for (let i = 0; i < userSolution.length; i++) {
-        if (normalize(userSolution[i]) !== normalize(currentGame.R[i])) {
-            userSolution[i] = currentGame.R[i];
+        if (normalize(userSolution[i]) !== currentGame.normR[i]) {
+            userSolution[i] = currentGame.normR[i];
             focusedSlotIndex = (i + 1) % userSolution.length;
             renderGame();
             break;
@@ -172,10 +220,12 @@ function giveHint() {
 
 // Event Listeners
 newGameBtn.addEventListener('click', startNewGame);
+difficultySelect.addEventListener('change', startNewGame);
+vocabularySelect.addEventListener('change', startNewGame);
 checkBtn.addEventListener('click', checkSolution);
 hintBtn.addEventListener('click', giveHint);
 resetBtn.addEventListener('click', () => {
-    userSolution = new Array(currentGame.R.length).fill('');
+    userSolution = new Array(currentGame.normR.length).fill('');
     focusedSlotIndex = 0;
     renderGame();
     showMessage('', '');
@@ -184,20 +234,28 @@ resetBtn.addEventListener('click', () => {
 // Keyboard support
 window.addEventListener('keydown', (e) => {
     if (e.key === 'Backspace') {
-        userSolution[focusedSlotIndex] = '';
-        focusedSlotIndex = Math.max(0, focusedSlotIndex - 1);
+        if (userSolution[focusedSlotIndex] !== '') {
+            userSolution[focusedSlotIndex] = '';
+        } else if (focusedSlotIndex > 0) {
+            focusedSlotIndex--;
+            userSolution[focusedSlotIndex] = '';
+        }
         renderGame();
     } else if (e.key === 'Enter') {
         checkSolution();
-    } else if (e.key.length === 1 && e.key.match(/[a-zàâçéèêëîïôûùÿ-]/i)) {
-        userSolution[focusedSlotIndex] = e.key;
-        focusedSlotIndex = (focusedSlotIndex + 1) % userSolution.length;
-        renderGame();
+    } else if (e.key.length === 1 && e.key.match(/[a-z]/i)) {
+        const char = normalize(e.key);
+        const available = getAvailableLetters();
+        if (available[char] > 0) {
+            userSolution[focusedSlotIndex] = char;
+            focusedSlotIndex = (focusedSlotIndex + 1) % userSolution.length;
+            renderGame();
+        }
     } else if (e.key === 'ArrowLeft') {
         focusedSlotIndex = Math.max(0, focusedSlotIndex - 1);
         renderGame();
     } else if (e.key === 'ArrowRight') {
-        focusedSlotIndex = Math.min(userSolution.length - 1, focusedSlotIndex + 1);
+        focusedSlotIndex = (focusedSlotIndex + 1) % userSolution.length;
         renderGame();
     }
 });

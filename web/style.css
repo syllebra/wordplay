@@ -1,0 +1,203 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f7f6;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+}
+
+.container {
+    background-color: #ffffff;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    max-width: 800px;
+    width: 100%;
+}
+
+h1 {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+}
+
+.description {
+    color: #7f8c8d;
+    margin-bottom: 2rem;
+}
+
+.settings {
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.setting-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+#difficulty, #vocabulary {
+    padding: 0.5rem;
+    font-size: 1rem;
+    border-radius: 4px;
+    border: 1px solid #bdc3c7;
+}
+
+#new-game {
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#new-game:hover {
+    background-color: #2980b9;
+}
+
+#game-board {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.source-words {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.word-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    min-height: 50px;
+}
+
+.plus, .equals {
+    font-size: 2rem;
+    color: #2c3e50;
+    font-weight: bold;
+}
+
+.letter {
+    width: 45px;
+    height: 45px;
+    background-color: #ecf0f1;
+    border: 2px solid #bdc3c7;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #2c3e50;
+    cursor: grab;
+    user-select: none;
+    transition: background-color 0.2s, border-color 0.2s, opacity 0.2s;
+}
+
+.letter:active {
+    cursor: grabbing;
+}
+
+.letter.dragging {
+    opacity: 0.5;
+}
+
+.letter.used {
+    background-color: #dcdde1;
+    color: #bdc3c7;
+    border-color: #dcdde1;
+    cursor: default;
+    opacity: 0.6;
+}
+
+.letter.placeholder {
+    background-color: transparent;
+    border-style: dashed;
+    border-color: #dcdde1;
+    color: #dcdde1;
+}
+
+.solution-container .letter-slot {
+    width: 45px;
+    height: 45px;
+    background-color: #fff;
+    border: 2px solid #34495e;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #2c3e50;
+    transition: border-color 0.3s, background-color 0.3s;
+    cursor: pointer;
+}
+
+.solution-container .letter-slot.focused {
+    border-color: #3498db;
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+}
+
+.solution-container .letter-slot.filled {
+    background-color: #34495e;
+    color: white;
+}
+
+.controls {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+button {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: opacity 0.3s;
+}
+
+#check-btn { background-color: #27ae60; color: white; }
+#hint-btn { background-color: #f39c12; color: white; }
+#reset-btn { background-color: #e74c3c; color: white; }
+
+button:hover { opacity: 0.8; }
+
+.message {
+    font-weight: bold;
+    font-size: 1.2rem;
+    min-height: 1.5rem;
+}
+
+.success { color: #27ae60; }
+.error { color: #e74c3c; }
+
+@media (max-width: 600px) {
+    .source-words { flex-direction: column; }
+    .plus { transform: rotate(90deg); }
+    .letter, .solution-container .letter-slot {
+        width: 35px;
+        height: 35px;
+        font-size: 1.2rem;
+    }
+}

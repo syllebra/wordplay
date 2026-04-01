@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jeu de Mots Combinés</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Jeu de Mots Combinés</h1>
+        <p class="description">Combinez les lettres des deux mots pour former le mot final !</p>
+
+        <div class="settings">
+            <div class="setting-group">
+                <label for="vocabulary">Vocabulaire :</label>
+                <select id="vocabulary">
+                    <option value="common">Mots courants</option>
+                    <option value="all">Tous les mots</option>
+                </select>
+            </div>
+            <div class="setting-group">
+                <label for="difficulty">Lettres :</label>
+                <select id="difficulty">
+                    <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8" selected>8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+                <option value="11">11</option>
+                <option value="12">12</option>
+            </select>
+            <button id="new-game">Nouveau mot</button>
+        </div>
+
+        <div id="game-board">
+            <div class="source-words">
+                <div id="word1" class="word-container"></div>
+                <div class="plus">+</div>
+                <div id="word2" class="word-container"></div>
+            </div>
+
+            <div class="equals">=</div>
+
+            <div id="solution" class="word-container solution-container">
+                <!-- Solution slots will be generated here -->
+            </div>
+        </div>
+
+        <div class="controls">
+            <button id="check-btn">Vérifier</button>
+            <button id="hint-btn">Indice</button>
+            <button id="reset-btn">Réinitialiser</button>
+        </div>
+
+        <div id="message" class="message"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
